@@ -12,9 +12,11 @@
 hs_err_pid*
 /target/
 
+
 # Setting & Build files
 .settings
 bin
 .classpath
 .project
 build.fxbuild
+logs

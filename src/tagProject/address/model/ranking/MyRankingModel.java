@@ -49,7 +49,7 @@ public class MyRankingModel extends WeightingModel{
 		double Robertson_tf = k_1*tf/(tf+k_1*(1-b+b*docLength/averageDocumentLength));
 		double idf = WeightingModelLibrary.log(numberOfDocuments/documentFrequency+1);
 		//crear identificador hash a partir de la cantidad de caracteres
-		return keyFrequency * Robertson_tf * idf;
+		return keyFrequency * Robertson_tf * idf /* *val_eti*/;
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class MyRankingModel extends WeightingModel{
      *
      * @return  a hash code value for this object.
      */
-    public int hashCode() {
+    /*public int hashCode() {
         int h = hash;
         if (h == 0 && value.length > 0) {
             char val[] = value;
@@ -92,5 +92,5 @@ public class MyRankingModel extends WeightingModel{
             hash = h;
         }
         return h;
-    }
+    }*/
 }
