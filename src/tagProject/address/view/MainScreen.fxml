@@ -21,12 +21,12 @@
                     <Glow />
                   </effect>
                 </TreeView>
-                <Label layoutX="70.0" layoutY="118.0" text="Etiquetados" />
+                <Label layoutX="70.0" layoutY="118.0" text="Etiquetados" fx:id="idLabelEtiquetados" />
                 <PieChart id="PieChart" layoutX="261.0" layoutY="145.0" />
                 <Label layoutX="472.0" layoutY="108.0" prefWidth="110.0" text="Sin Etiquetas" />
                 <TextField layoutX="326.0" layoutY="35.0" prefWidth="200.0" />
                 <Label layoutX="234.0" layoutY="38.0" text="Consulta" />
-                <Button layoutX="547.0" layoutY="35.0" mnemonicParsing="false" text="Buscar" />
+                <Button layoutX="547.0" layoutY="35.0" mnemonicParsing="false" text="Buscar" fx:id="buscarBtn" />
               </children>
             </AnchorPane>
           </content>
