@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -16,9 +18,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import tagProject.address.model.beans.FileIndexed;
 
 public class MainScreenControler {
 
@@ -45,6 +51,18 @@ public class MainScreenControler {
     
     @FXML
     private TextField termSearch;
+    
+    @FXML
+    private TableView<FileIndexed> filesTable;
+    
+    @FXML
+	private TableColumn<?, ?> titleCol;
+	@FXML
+	private TableColumn<?, ?> descriptionCol;
+	@FXML
+	private TableColumn<?, ?> tagsCol;
+    
+    
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -59,7 +77,7 @@ public class MainScreenControler {
         
     }
     
-    private List<String> GetTagsByTerm(String term){
+    private List<String> getTagsByTerm(String term){
     	List<String> tags = new ArrayList<String>();
     	
     	tags.add("animales");
@@ -70,7 +88,7 @@ public class MainScreenControler {
     	return tags;
     }
     
-    private void SearchByTerm() {
+    private void searchTagsByTerm() {
     	idLabelEtiquetados.setText("Etiquetas encontradas:");
 		
 		tagsTree.setCellFactory(CheckBoxTreeCell.<String>forTreeView()); // Set list with checkboxes.
@@ -78,13 +96,63 @@ public class MainScreenControler {
 		CheckBoxTreeItem<String> tagsFound = new CheckBoxTreeItem<String>("Resultado búsqueda");
 		tagsFound.setExpanded(true);
 		
-		for(String tag: GetTagsByTerm(termSearch.getText())) {
+		for(String tag: getTagsByTerm(termSearch.getText())) {
 			tagsFound.getChildren().add(new CheckBoxTreeItem<String>(tag));    					
 		}
 		
 		tagsTree.setRoot(tagsFound);
 		tagsTree.setEditable(true);
 		tagsTree.setShowRoot(true);
+    }
+    
+    private void showFilesByTags() {
+    	
+    	List<String> tagsSelected = getTagsSelected();
+    	
+    	ObservableList<FileIndexed> filesIndexed = FXCollections.observableArrayList();
+    	
+    	filesTable.setItems(filesIndexed);
+    	
+    	titleCol.setCellValueFactory(
+                new PropertyValueFactory<>("title"));
+    	descriptionCol.setCellValueFactory(
+                new PropertyValueFactory<>("description"));
+    	tagsCol.setCellValueFactory(
+                new PropertyValueFactory<>("tags"));
+    	
+    	filesIndexed.addAll(GetFilesByTags(tagsSelected));
+    	
+    }
+    
+    private List<String> getTagsSelected() {
+    	List<String> tagsSelected = new ArrayList<String>();
+    	tagsSelected.add("animales");
+    	tagsSelected.add("casas");
+    	tagsSelected.add("ciencia");
+    	
+    	return tagsSelected;
+    }
+    
+    private List<FileIndexed> GetFilesByTags(List<String> tags) {
+    	
+    	List<FileIndexed> files = new ArrayList<FileIndexed>();
+    	
+    	if (tags.contains("animales")) {
+    		files.add(new FileIndexed("peces.pdf", "Diccionario de peces", "animales, aves"));
+    	}
+    	
+    	if (tags.contains("casas")) {
+    		files.add(new FileIndexed("parcela.jpg", "La parcela de Los Vilos", "construcción, casas"));
+    		files.add(new FileIndexed("casa-papas.jpg", "Casa de mis papas", "vivienda, casas"));
+    	}
+    	
+    	if (tags.contains("ciencia")) {
+    		files.add(new FileIndexed("torpedo-prueba-optimizacion.pdf", "Apuntes para pasar el ramo", "materia, pilleria, ciencia"));
+    	}
+    	
+    	
+    	
+    	return files;
     }
     
     private class EventosMainScreen {
@@ -94,7 +162,9 @@ public class MainScreenControler {
     			
     			@Override
 				public void handle(Event event) {
-    				SearchByTerm();
+    				searchTagsByTerm();
+    				
+    				showFilesByTags();
     			}
     		};
     		
