@@ -6,8 +6,10 @@ package tagProject.address.view;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,6 +41,9 @@ public class MainScreenControler {
 
     @FXML // fx:id="idLabelEtiquetados"
     private Label idLabelEtiquetados; // Value injected by FXMLLoader
+    
+    @FXML
+    private Label idLabelDocuments;
 
     @FXML // fx:id="buscarBtn"
     private Button buscarBtn; // Value injected by FXMLLoader
@@ -95,9 +100,28 @@ public class MainScreenControler {
 		
 		CheckBoxTreeItem<String> tagsFound = new CheckBoxTreeItem<String>("Resultado búsqueda");
 		tagsFound.setExpanded(true);
+		tagsFound.setSelected(true);
 		
 		for(String tag: getTagsByTerm(termSearch.getText())) {
-			tagsFound.getChildren().add(new CheckBoxTreeItem<String>(tag));    					
+			CheckBoxTreeItem<String> cb = new CheckBoxTreeItem<>(tag);
+			
+			cb.setSelected(true);
+			
+			cb.selectedProperty().addListener((obs, oldVal, newVal) -> {
+				
+				List<String> tags = Arrays.asList(cb.getValue());
+				
+				if (newVal) {
+					showFilesByTags(tags);
+				} else {
+					hideFilesByTags(tags);
+				}
+				
+			});
+			
+			tagsFound.getChildren().add(cb);
+			
+			
 		}
 		
 		tagsTree.setRoot(tagsFound);
@@ -105,7 +129,44 @@ public class MainScreenControler {
 		tagsTree.setShowRoot(true);
     }
     
-    private void showFilesByTags() {
+    private void showFilesByTags(List<String> tagsSelected) {    	
+    	
+    	ObservableList<FileIndexed> filesIndexed = FXCollections.observableArrayList();
+    	
+    	filesIndexed = filesTable.getItems();
+    	filesTable.setItems(filesIndexed);
+    	
+    	titleCol.setCellValueFactory(
+                new PropertyValueFactory<>("title"));
+    	descriptionCol.setCellValueFactory(
+                new PropertyValueFactory<>("description"));
+    	tagsCol.setCellValueFactory(
+                new PropertyValueFactory<>("tags"));
+    	
+    	filesIndexed.addAll(GetFilesByTags(tagsSelected));
+    	
+    }
+    
+private void hideFilesByTags(List<String> tagsSelected) {    	
+    	
+    	ObservableList<FileIndexed> filesIndexed = FXCollections.observableArrayList();
+    	
+    	filesIndexed = filesTable.getItems();
+    	
+    	titleCol.setCellValueFactory(
+                new PropertyValueFactory<>("title"));
+    	descriptionCol.setCellValueFactory(
+                new PropertyValueFactory<>("description"));
+    	tagsCol.setCellValueFactory(
+                new PropertyValueFactory<>("tags"));
+    	
+    	for(FileIndexed tag: GetFilesByTags(tagsSelected)) {
+    		filesIndexed.removeIf(p -> p.getTags() == tag.getTags());
+    	}
+    	
+    }
+    
+    private void showFilesByAllTags() {
     	
     	List<String> tagsSelected = getTagsSelected();
     	
@@ -121,7 +182,6 @@ public class MainScreenControler {
                 new PropertyValueFactory<>("tags"));
     	
     	filesIndexed.addAll(GetFilesByTags(tagsSelected));
-    	
     }
     
     private List<String> getTagsSelected() {
@@ -164,7 +224,8 @@ public class MainScreenControler {
 				public void handle(Event event) {
     				searchTagsByTerm();
     				
-    				showFilesByTags();
+    				//dentro de evento check
+    				showFilesByAllTags();
     			}
     		};
     		
