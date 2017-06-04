@@ -7,15 +7,24 @@ package tagProject.address.view;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 
+import eu.hansolo.enzo.notification.Notification.Notifier;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
+import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Label;
@@ -26,6 +35,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.util.Duration;
+import tagProject.address.model.IR;
 import tagProject.address.model.beans.FileIndexed;
 
 public class MainScreenControler {
@@ -51,8 +63,8 @@ public class MainScreenControler {
     @FXML // fx:id="idTabBusqueda"
     private Tab idTabBusqueda; // Value injected by FXMLLoader
     
-    @FXML
-    private TreeView tagsTree;
+	@FXML
+	private BarChart<Integer, String> tagChart;
     
     @FXML
     private TextField termSearch;
@@ -67,14 +79,12 @@ public class MainScreenControler {
 	@FXML
 	private TableColumn<?, ?> tagsCol;
     
-    
+	public void setTabContent(Node n){
+		idTabIndice.setContent(n);
+	}
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        assert idTabIndice != null : "fx:id=\"idTabIndice\" was not injected: check your FXML file 'MainScreen.fxml'.";
-        assert idLabelEtiquetados != null : "fx:id=\"idLabelEtiquetados\" was not injected: check your FXML file 'MainScreen.fxml'.";
-        assert buscarBtn != null : "fx:id=\"buscarBtn\" was not injected: check your FXML file 'MainScreen.fxml'.";
-        assert idTabBusqueda != null : "fx:id=\"idTabBusqueda\" was not injected: check your FXML file 'MainScreen.fxml'.";
 
         EventosMainScreen eventosMainScreen = new EventosMainScreen();
         
@@ -96,37 +106,28 @@ public class MainScreenControler {
     private void searchTagsByTerm() {
     	idLabelEtiquetados.setText("Etiquetas encontradas:");
 		
-		tagsTree.setCellFactory(CheckBoxTreeCell.<String>forTreeView()); // Set list with checkboxes.
-		
-		CheckBoxTreeItem<String> tagsFound = new CheckBoxTreeItem<String>("Resultado búsqueda");
-		tagsFound.setExpanded(true);
-		tagsFound.setSelected(true);
+    	tagChart.getData().clear();
+    	
+    	XYChart.Series<Integer, String> series = new XYChart.Series<>();
+    	
 		
 		for(String tag: getTagsByTerm(termSearch.getText())) {
-			CheckBoxTreeItem<String> cb = new CheckBoxTreeItem<>(tag);
+
+			Data<Integer, String> nodo = new XYChart.Data<>((int) (Math.random()*500), tag);
 			
-			cb.setSelected(true);
-			
-			cb.selectedProperty().addListener((obs, oldVal, newVal) -> {
-				
-				List<String> tags = Arrays.asList(cb.getValue());
-				
-				if (newVal) {
-					showFilesByTags(tags);
-				} else {
-					hideFilesByTags(tags);
-				}
-				
-			});
-			
-			tagsFound.getChildren().add(cb);
-			
+			series.getData().add(nodo);
 			
 		}
+
+		tagChart.getData().add(series);
 		
-		tagsTree.setRoot(tagsFound);
-		tagsTree.setEditable(true);
-		tagsTree.setShowRoot(true);
+		for (final Data<Integer, String> dt : series.getData()) {
+	        final Node n = dt.getNode();
+	        n.setStyle("-fx-background-color: #ff6666");//plomo
+	        
+	        n.setOnMouseClicked(new EventosMainScreen().getEventoChart(dt, series));
+	        
+		}
     }
     
     private void showFilesByTags(List<String> tagsSelected) {    	
@@ -202,7 +203,7 @@ private void hideFilesByTags(List<String> tagsSelected) {
     	}
     	
     	if (tags.contains("casas")) {
-    		files.add(new FileIndexed("parcela.jpg", "La parcela de Los Vilos", "construcción, casas"));
+    		files.add(new FileIndexed("parcela.jpg", "La parcela de Los Vilos", "construcciÃ³n, casas"));
     		files.add(new FileIndexed("casa-papas.jpg", "Casa de mis papas", "vivienda, casas"));
     	}
     	
@@ -223,12 +224,54 @@ private void hideFilesByTags(List<String> tagsSelected) {
     			@Override
 				public void handle(Event event) {
     				searchTagsByTerm();
-    				
     				//dentro de evento check
     				showFilesByAllTags();
     			}
     		};
     		
     	}
+
+		private EventHandler<MouseEvent> getEventoChart( Data<Integer, String> dt, XYChart.Series<Integer, String> series) {
+			
+			return new EventHandler<MouseEvent>() {
+	            @Override
+	            public void handle(MouseEvent e) {
+	            	filesTable.getItems().clear();
+	            	if(dt.getNode().getStyle().equalsIgnoreCase("-fx-background-color: #ff6666")){////Si ya ha sido precionado
+	            		dt.getNode().setStyle("-fx-background-color: #9f9f9f");
+
+	            		
+	            	}else if(dt.getNode().getStyle().equalsIgnoreCase("-fx-background-color: #9f9f9f")){ //si no ha sido marcado
+	            		
+	            		dt.getNode().setStyle("-fx-background-color: #ff6666");
+
+	            	}
+	            	
+	            	List<String> listaTagsMarcados = new ArrayList<>();
+	            	
+	        		for(Data<Integer, String> it : tagChart.getData().get(0).getData()) {
+
+	        	        final Node n = it.getNode();
+	        	        if(n.getStyle().equalsIgnoreCase("-fx-background-color: #ff6666")){
+	        	        	
+	        	        	listaTagsMarcados.add(it.getYValue());
+	        	        }if(n.getStyle().equalsIgnoreCase("-fx-background-color: #9f9f9f")){
+	        	        	listaTagsMarcados.remove(it.getYValue());
+	        	        }
+	        	        
+	        	        
+	        		}
+	        		
+	            	showFilesByTags(listaTagsMarcados);
+	            	
+					Notifier.setPopupLocation(null, Pos.CENTER);
+					Notifier.setWidth(600);
+					Notifier.INSTANCE.setPopupLifetime(new Duration(200));
+					Notifier.INSTANCE.notifyInfo("Info", "La cantidad de documentos son " + String.valueOf(dt.getXValue()).split("\\.")[0]);
+					
+	            }
+	        };
+		}
+		
     }
 }
