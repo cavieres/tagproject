@@ -30,13 +30,13 @@ public static Stage mainStage;
         
         // TODO: Carga de pestagna indice comentado, ya que provoca errores. 
         //Index Layout
-    	//FXMLLoader indexLoader = new FXMLLoader();
-    	//indexLoader.setLocation(MainTag.class.getResource("view/IndexLayout.fxml"));
-        //AnchorPane indexOverview = (AnchorPane) indexLoader.load();
+    	FXMLLoader indexLoader = new FXMLLoader();
+    	indexLoader.setLocation(MainTag.class.getResource("view/IndexLayout.fxml"));
+        AnchorPane indexOverview = (AnchorPane) indexLoader.load();
 
-        //MainScreenControler controller = mainLoader.getController();
+        MainScreenControler controller = mainLoader.getController();
         
-        //controller.setTabContent(indexOverview);
+        controller.setTabContent(indexOverview);
         
         Scene scene = new Scene(mainOverview);
         mainStage.setScene(scene);
